@@ -5,7 +5,7 @@ description = "MCP server for RentCast API integration"
 license = {text = "MIT"}
 readme = "README.md"
 authors = [
-    { name = "Rob", email = "rob@example.com" }
+    { name = "Rob Cerda", email = "me@robcerda.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
@@ -29,8 +29,8 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/rentcast-mcp-server"
-"Bug Tracker" = "https://github.com/yourusername/rentcast-mcp-server/issues"
+"Homepage" = "https://github.com/robcerda/rentcast-mcp-server"
+"Bug Tracker" = "https://github.com/robcerda/rentcast-mcp-server/issues"
 
 [project.scripts]
 rentcast-mcp = "rentcast_mcp_server.server:main"
