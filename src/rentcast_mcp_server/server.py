@@ -10,6 +10,9 @@ Main Features:
     - Property valuations
     - Rent estimates
     - Market statistics
+    - Property records
+    - Sale listings
+    - Rental listings
     - Error handling with user-friendly messages
     - Configurable parameters with environment variable support
 
@@ -27,6 +30,13 @@ Usage:
         - get_rent_estimate
         - get_market_statistics
         - get_property_listings
+        - get_property_records
+        - get_random_property_records
+        - get_property_record_by_id
+        - get_sale_listings
+        - get_sale_listing_by_id
+        - get_rental_listings
+        - get_rental_listing_by_id
 
     See the README for more details on configuration and usage.
 """
@@ -123,7 +133,7 @@ async def get_market_statistics(
             # Remove None values
             params = {k: v for k, v in params.items() if v is not None}
             
-            response = await client.get("/market-statistics", params=params)
+            response = await client.get("/markets", params=params)
             response.raise_for_status()
             return response.json()
         except Exception as e:
@@ -156,6 +166,198 @@ async def get_property_listings(
             return response.json()
         except Exception as e:
             logger.error(f"Error getting property listings: {str(e)}")
+            raise
+
+@mcp.tool()
+async def get_property_records(
+    zip_code: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    property_type: Optional[str] = None,
+    bedrooms: Optional[int] = None,
+    bathrooms: Optional[float] = None,
+    min_price: Optional[int] = None,
+    max_price: Optional[int] = None,
+    min_square_feet: Optional[int] = None,
+    max_square_feet: Optional[int] = None,
+    year_built: Optional[int] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None
+) -> Dict:
+    """Get property records with various filters."""
+    async with await get_http_client() as client:
+        try:
+            params = {
+                "zipCode": zip_code,
+                "city": city,
+                "state": state,
+                "propertyType": property_type,
+                "bedrooms": bedrooms,
+                "bathrooms": bathrooms,
+                "minPrice": min_price,
+                "maxPrice": max_price,
+                "minSquareFeet": min_square_feet,
+                "maxSquareFeet": max_square_feet,
+                "yearBuilt": year_built,
+                "page": page,
+                "pageSize": page_size
+            }
+            # Remove None values
+            params = {k: v for k, v in params.items() if v is not None}
+            
+            response = await client.get("/properties", params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting property records: {str(e)}")
+            raise
+
+@mcp.tool()
+async def get_random_property_records(
+    limit: Optional[int] = None,
+    property_type: Optional[str] = None,
+    state: Optional[str] = None
+) -> Dict:
+    """Get random property records."""
+    async with await get_http_client() as client:
+        try:
+            params = {
+                "limit": limit,
+                "propertyType": property_type,
+                "state": state
+            }
+            # Remove None values
+            params = {k: v for k, v in params.items() if v is not None}
+            
+            response = await client.get("/properties/random", params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting random property records: {str(e)}")
+            raise
+
+@mcp.tool()
+async def get_property_record_by_id(property_id: str) -> Dict:
+    """Get a specific property record by ID."""
+    async with await get_http_client() as client:
+        try:
+            response = await client.get(f"/properties/{property_id}")
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting property record {property_id}: {str(e)}")
+            raise
+
+@mcp.tool()
+async def get_sale_listings(
+    zip_code: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    property_type: Optional[str] = None,
+    bedrooms: Optional[int] = None,
+    bathrooms: Optional[float] = None,
+    min_price: Optional[int] = None,
+    max_price: Optional[int] = None,
+    min_square_feet: Optional[int] = None,
+    max_square_feet: Optional[int] = None,
+    year_built: Optional[int] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None
+) -> Dict:
+    """Get sale listings with various filters."""
+    async with await get_http_client() as client:
+        try:
+            params = {
+                "zipCode": zip_code,
+                "city": city,
+                "state": state,
+                "propertyType": property_type,
+                "bedrooms": bedrooms,
+                "bathrooms": bathrooms,
+                "minPrice": min_price,
+                "maxPrice": max_price,
+                "minSquareFeet": min_square_feet,
+                "maxSquareFeet": max_square_feet,
+                "yearBuilt": year_built,
+                "page": page,
+                "pageSize": page_size
+            }
+            # Remove None values
+            params = {k: v for k, v in params.items() if v is not None}
+            
+            response = await client.get("/listings/sale", params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting sale listings: {str(e)}")
+            raise
+
+@mcp.tool()
+async def get_sale_listing_by_id(listing_id: str) -> Dict:
+    """Get a specific sale listing by ID."""
+    async with await get_http_client() as client:
+        try:
+            response = await client.get(f"/listings/sale/{listing_id}")
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting sale listing {listing_id}: {str(e)}")
+            raise
+
+@mcp.tool()
+async def get_rental_listings(
+    zip_code: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    property_type: Optional[str] = None,
+    bedrooms: Optional[int] = None,
+    bathrooms: Optional[float] = None,
+    min_price: Optional[int] = None,
+    max_price: Optional[int] = None,
+    min_square_feet: Optional[int] = None,
+    max_square_feet: Optional[int] = None,
+    year_built: Optional[int] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None
+) -> Dict:
+    """Get rental listings with various filters."""
+    async with await get_http_client() as client:
+        try:
+            params = {
+                "zipCode": zip_code,
+                "city": city,
+                "state": state,
+                "propertyType": property_type,
+                "bedrooms": bedrooms,
+                "bathrooms": bathrooms,
+                "minPrice": min_price,
+                "maxPrice": max_price,
+                "minSquareFeet": min_square_feet,
+                "maxSquareFeet": max_square_feet,
+                "yearBuilt": year_built,
+                "page": page,
+                "pageSize": page_size
+            }
+            # Remove None values
+            params = {k: v for k, v in params.items() if v is not None}
+            
+            response = await client.get("/listings/rental", params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting rental listings: {str(e)}")
+            raise
+
+@mcp.tool()
+async def get_rental_listing_by_id(listing_id: str) -> Dict:
+    """Get a specific rental listing by ID."""
+    async with await get_http_client() as client:
+        try:
+            response = await client.get(f"/listings/rental/{listing_id}")
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting rental listing {listing_id}: {str(e)}")
             raise
 
 def main():
