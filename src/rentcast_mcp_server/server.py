@@ -88,30 +88,59 @@ async def get_property_data(property_id: str) -> Dict:
             response = await client.get(f"/properties/{property_id}")
             response.raise_for_status()
             return response.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"error": "Property not found", "suggestions": ["Check property ID format", "Try searching by address first"]}
+            logger.error(f"HTTP error getting property {property_id}: {e.response.status_code}")
+            raise
         except Exception as e:
             logger.error(f"Error getting property {property_id}: {str(e)}")
             raise
 
 @mcp.tool()
 async def get_property_valuation(property_id: str) -> Dict:
-    """Get valuation data for a specific property."""
+    """Get valuation data for a specific property. Note: RentCast API may return basic property data instead of detailed valuations depending on subscription tier."""
     async with await get_http_client() as client:
         try:
             response = await client.get(f"/properties/{property_id}/valuation")
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Check if we got actual valuation data or just basic property data
+            valuation_fields = [k for k in data.keys() if any(term in k.lower() for term in ['value', 'estimate', 'price', 'valuation', 'worth'])]
+            if not valuation_fields and len(data.keys()) <= 15:
+                data["_note"] = "API returned basic property data. Valuation data may require higher subscription tier or different endpoint."
+            
+            return data
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"error": "Property not found", "suggestions": ["Check property ID format", "Try searching by address first"]}
+            logger.error(f"HTTP error getting valuation for property {property_id}: {e.response.status_code}")
+            raise
         except Exception as e:
             logger.error(f"Error getting valuation for property {property_id}: {str(e)}")
             raise
 
 @mcp.tool()
 async def get_rent_estimate(property_id: str) -> Dict:
-    """Get rent estimate for a specific property."""
+    """Get rent estimate for a specific property. Note: RentCast API may return basic property data instead of detailed rent estimates depending on subscription tier."""
     async with await get_http_client() as client:
         try:
             response = await client.get(f"/properties/{property_id}/rent-estimate")
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Check if we got actual rent estimate data or just basic property data
+            rent_fields = [k for k in data.keys() if any(term in k.lower() for term in ['rent', 'rental', 'estimate', 'monthly'])]
+            if not rent_fields and len(data.keys()) <= 15:
+                data["_note"] = "API returned basic property data. Rent estimate data may require higher subscription tier or different endpoint."
+            
+            return data
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"error": "Property not found", "suggestions": ["Check property ID format", "Try searching by address first"]}
+            logger.error(f"HTTP error getting rent estimate for property {property_id}: {e.response.status_code}")
+            raise
         except Exception as e:
             logger.error(f"Error getting rent estimate for property {property_id}: {str(e)}")
             raise
@@ -183,8 +212,8 @@ async def get_property_records(
     year_built: Optional[int] = None,
     page: Optional[int] = None,
     page_size: Optional[int] = None
-) -> Dict:
-    """Get property records with various filters."""
+) -> List[Dict]:
+    """Get property records with various filters. Returns a list of property records."""
     async with await get_http_client() as client:
         try:
             params = {
@@ -207,7 +236,20 @@ async def get_property_records(
             
             response = await client.get("/properties", params=params)
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Ensure we return a list
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and 'properties' in data:
+                return data['properties']
+            else:
+                return [data] if data else []
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return []
+            logger.error(f"HTTP error getting property records: {e.response.status_code}")
+            raise
         except Exception as e:
             logger.error(f"Error getting property records: {str(e)}")
             raise
@@ -217,8 +259,8 @@ async def get_random_property_records(
     limit: Optional[int] = None,
     property_type: Optional[str] = None,
     state: Optional[str] = None
-) -> Dict:
-    """Get random property records."""
+) -> List[Dict]:
+    """Get random property records. Returns a list of random property records."""
     async with await get_http_client() as client:
         try:
             params = {
@@ -231,7 +273,20 @@ async def get_random_property_records(
             
             response = await client.get("/properties/random", params=params)
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Ensure we return a list
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and 'properties' in data:
+                return data['properties']
+            else:
+                return [data] if data else []
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return []
+            logger.error(f"HTTP error getting random property records: {e.response.status_code}")
+            raise
         except Exception as e:
             logger.error(f"Error getting random property records: {str(e)}")
             raise
@@ -263,8 +318,8 @@ async def get_sale_listings(
     year_built: Optional[int] = None,
     page: Optional[int] = None,
     page_size: Optional[int] = None
-) -> Dict:
-    """Get sale listings with various filters."""
+) -> List[Dict]:
+    """Get sale listings with various filters. Returns a list of sale listings."""
     async with await get_http_client() as client:
         try:
             params = {
@@ -287,7 +342,20 @@ async def get_sale_listings(
             
             response = await client.get("/listings/sale", params=params)
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Ensure we return a list
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and 'listings' in data:
+                return data['listings']
+            else:
+                return [data] if data else []
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return []
+            logger.error(f"HTTP error getting sale listings: {e.response.status_code}")
+            raise
         except Exception as e:
             logger.error(f"Error getting sale listings: {str(e)}")
             raise
@@ -319,8 +387,8 @@ async def get_rental_listings(
     year_built: Optional[int] = None,
     page: Optional[int] = None,
     page_size: Optional[int] = None
-) -> Dict:
-    """Get rental listings with various filters."""
+) -> List[Dict]:
+    """Get rental listings with various filters. Returns a list of rental listings."""
     async with await get_http_client() as client:
         try:
             params = {
@@ -343,7 +411,20 @@ async def get_rental_listings(
             
             response = await client.get("/listings/rental", params=params)
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Ensure we return a list
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and 'listings' in data:
+                return data['listings']
+            else:
+                return [data] if data else []
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return []
+            logger.error(f"HTTP error getting rental listings: {e.response.status_code}")
+            raise
         except Exception as e:
             logger.error(f"Error getting rental listings: {str(e)}")
             raise
