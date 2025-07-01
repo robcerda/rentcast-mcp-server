@@ -1,0 +1,127 @@
+{
+  "dxt_version": "0.1",
+  "name": "rentcast-mcp",
+  "version": "0.2.0",
+  "description": "RentCast API integration for property data, valuations, and market analytics",
+  "author": {
+    "name": "Rob Cerda",
+    "email": "me@robcerda.com",
+    "url": "https://github.com/robcerda/rentcast-mcp-server"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/robcerda/rentcast-mcp-server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/robcerda/rentcast-mcp-server.git"
+  },
+  "keywords": ["real-estate", "property", "valuation", "rentcast", "mcp"],
+  "server": {
+    "type": "python",
+    "entry_point": "src/rentcast_mcp_server/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["${__dirname}/src/rentcast_mcp_server/server.py"],
+      "env": {
+        "RENTCAST_API_KEY": "${user_config.api_key}"
+      }
+    },
+    "requirements": {
+      "python": ">=3.12"
+    }
+  },
+  "user_config": {
+    "api_key": {
+      "title": "RentCast API Key",
+      "description": "Your RentCast API key from app.rentcast.io",
+      "type": "string",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-f0-9]{32}$",
+        "message": "API key should be a 32-character hexadecimal string"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "get_property_data",
+      "description": "Get detailed information about a specific property"
+    },
+    {
+      "name": "get_property_valuation", 
+      "description": "Get valuation data for a specific property"
+    },
+    {
+      "name": "get_rent_estimate",
+      "description": "Get rent estimate for a specific property"
+    },
+    {
+      "name": "get_market_statistics",
+      "description": "Get market statistics for a specific area"
+    },
+    {
+      "name": "get_property_listings",
+      "description": "Get property listings for a specific area"
+    },
+    {
+      "name": "get_property_records",
+      "description": "Get property records with various filters"
+    },
+    {
+      "name": "get_random_property_records",
+      "description": "Get random property records"
+    },
+    {
+      "name": "get_property_record_by_id",
+      "description": "Get a specific property record by ID"
+    },
+    {
+      "name": "get_sale_listings",
+      "description": "Get sale listings with various filters"
+    },
+    {
+      "name": "get_sale_listing_by_id",
+      "description": "Get a specific sale listing by ID"
+    },
+    {
+      "name": "get_rental_listings",
+      "description": "Get rental listings with various filters"
+    },
+    {
+      "name": "get_rental_listing_by_id",
+      "description": "Get a specific rental listing by ID"
+    },
+    {
+      "name": "get_property_comparables",
+      "description": "Get comparable properties for a specific property"
+    },
+    {
+      "name": "get_property_avm",
+      "description": "Get Automated Valuation Model (AVM) data for a property"
+    },
+    {
+      "name": "get_property_history",
+      "description": "Get historical price trends and transaction history"
+    },
+    {
+      "name": "search_properties_by_address",
+      "description": "Search for properties by address with fuzzy matching"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "property_analysis",
+      "description": "Analyze a property's value, comparables, and market trends",
+      "text": "Please analyze the property at {address}. Include:\n1. Current valuation and rent estimate\n2. Comparable properties in the area\n3. Historical price trends\n4. Market statistics for the ZIP code\n\nProvide insights on whether this is a good investment opportunity."
+    },
+    {
+      "name": "market_overview", 
+      "description": "Get comprehensive market overview for an area",
+      "text": "Provide a comprehensive market overview for ZIP code {zip_code}. Include:\n1. Market statistics (avg/median prices, price per sq ft)\n2. Current active listings\n3. Recent sales data\n4. Market trends and insights"
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "python_versions": ["3.12", "3.13"]
+  },
+  "icon": "🏠"
+}
