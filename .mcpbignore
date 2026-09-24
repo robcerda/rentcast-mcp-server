@@ -1,0 +1,19 @@
+# Files left out of the .mcpb bundle. The uv server type installs
+# dependencies from pyproject.toml and uv.lock on the user's machine, so no
+# virtual environment or vendored packages belong in the bundle.
+.venv/
+**/__pycache__/
+**/*.py[cod]
+.env*
+tests/
+.github/
+.ruff_cache/
+.pytest_cache/
+Dockerfile
+.dockerignore
+.gitignore
+.mcpbignore
+requirements*.txt
+*.mcpb
+*.dxt
+dist/

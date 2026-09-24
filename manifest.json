@@ -1,8 +1,11 @@
 {
-  "dxt_version": "0.1",
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/mcpb/main/schemas/mcpb-manifest-v0.4.schema.json",
+  "manifest_version": "0.4",
   "name": "rentcast-mcp",
-  "version": "0.2.0",
+  "display_name": "RentCast",
+  "version": "0.3.0",
   "description": "RentCast API integration for property data, valuations, and market analytics",
+  "long_description": "Search property records, get value and rent estimates with comparables, browse sale and rental listings, and pull market statistics for any US zip code through the RentCast API. Requires a RentCast API key from app.rentcast.io.",
   "author": {
     "name": "Rob Cerda",
     "email": "me@robcerda.com",
@@ -14,114 +17,118 @@
     "type": "git",
     "url": "https://github.com/robcerda/rentcast-mcp-server.git"
   },
-  "keywords": ["real-estate", "property", "valuation", "rentcast", "mcp"],
+  "documentation": "https://github.com/robcerda/rentcast-mcp-server#readme",
+  "support": "https://github.com/robcerda/rentcast-mcp-server/issues",
+  "keywords": [
+    "real-estate",
+    "property",
+    "valuation",
+    "rentcast",
+    "mcp"
+  ],
   "server": {
-    "type": "python",
+    "type": "uv",
     "entry_point": "src/rentcast_mcp_server/server.py",
     "mcp_config": {
-      "command": "python",
-      "args": ["${__dirname}/src/rentcast_mcp_server/server.py"],
+      "command": "uv",
+      "args": [
+        "run",
+        "--frozen",
+        "--no-dev",
+        "--directory",
+        "${__dirname}",
+        "rentcast-mcp"
+      ],
       "env": {
-        "RENTCAST_API_KEY": "${user_config.api_key}"
+        "RENTCAST_API_KEY": "${user_config.api_key}",
+        "RENTCAST_SUPPRESS_LOGGING": "${user_config.suppress_logging}"
       }
-    },
-    "requirements": {
-      "python": ">=3.12"
     }
   },
   "user_config": {
     "api_key": {
-      "title": "RentCast API Key",
-      "description": "Your RentCast API key from app.rentcast.io",
       "type": "string",
+      "title": "RentCast API Key",
+      "description": "Your RentCast API key from app.rentcast.io/app/api",
       "required": true,
-      "validation": {
-        "pattern": "^[a-f0-9]{32}$",
-        "message": "API key should be a 32-character hexadecimal string"
-      }
+      "sensitive": true
+    },
+    "suppress_logging": {
+      "title": "Suppress RentCast request logging",
+      "description": "Ask RentCast not to log your API queries and query parameters",
+      "type": "boolean",
+      "required": false,
+      "default": false
     }
   },
   "tools": [
     {
-      "name": "get_property_data",
-      "description": "Get detailed information about a specific property"
+      "name": "search_properties",
+      "description": "Search property records by address, city, state, zip code, or radius, with attribute filters"
     },
     {
-      "name": "get_property_valuation", 
-      "description": "Get valuation data for a specific property"
+      "name": "get_random_properties",
+      "description": "Get a random sample of property records"
+    },
+    {
+      "name": "get_property",
+      "description": "Get a single property record by id"
+    },
+    {
+      "name": "get_value_estimate",
+      "description": "Get a property value estimate (AVM) with comparable sales"
     },
     {
       "name": "get_rent_estimate",
-      "description": "Get rent estimate for a specific property"
+      "description": "Get a long-term rent estimate with comparable rentals"
+    },
+    {
+      "name": "search_sale_listings",
+      "description": "Search for-sale listings with location, attribute, price, and status filters"
+    },
+    {
+      "name": "get_sale_listing",
+      "description": "Get a single sale listing by id"
+    },
+    {
+      "name": "search_rental_listings",
+      "description": "Search long-term rental listings with location, attribute, rent, and status filters"
+    },
+    {
+      "name": "get_rental_listing",
+      "description": "Get a single long-term rental listing by id"
     },
     {
       "name": "get_market_statistics",
-      "description": "Get market statistics for a specific area"
-    },
-    {
-      "name": "get_property_listings",
-      "description": "Get property listings for a specific area"
-    },
-    {
-      "name": "get_property_records",
-      "description": "Get property records with various filters"
-    },
-    {
-      "name": "get_random_property_records",
-      "description": "Get random property records"
-    },
-    {
-      "name": "get_property_record_by_id",
-      "description": "Get a specific property record by ID"
-    },
-    {
-      "name": "get_sale_listings",
-      "description": "Get sale listings with various filters"
-    },
-    {
-      "name": "get_sale_listing_by_id",
-      "description": "Get a specific sale listing by ID"
-    },
-    {
-      "name": "get_rental_listings",
-      "description": "Get rental listings with various filters"
-    },
-    {
-      "name": "get_rental_listing_by_id",
-      "description": "Get a specific rental listing by ID"
-    },
-    {
-      "name": "get_property_comparables",
-      "description": "Get comparable properties for a specific property"
-    },
-    {
-      "name": "get_property_avm",
-      "description": "Get Automated Valuation Model (AVM) data for a property"
-    },
-    {
-      "name": "get_property_history",
-      "description": "Get historical price trends and transaction history"
-    },
-    {
-      "name": "search_properties_by_address",
-      "description": "Search for properties by address with fuzzy matching"
+      "description": "Get sale and rental market statistics and history for a zip code"
     }
   ],
   "prompts": [
     {
       "name": "property_analysis",
-      "description": "Analyze a property's value, comparables, and market trends",
-      "text": "Please analyze the property at {address}. Include:\n1. Current valuation and rent estimate\n2. Comparable properties in the area\n3. Historical price trends\n4. Market statistics for the ZIP code\n\nProvide insights on whether this is a good investment opportunity."
+      "description": "Analyze a property's value, rent, comparables, and local market",
+      "arguments": [
+        "address"
+      ],
+      "text": "Please analyze the property at ${arguments.address}. Include:\n1. The property record (attributes, last sale, tax assessment)\n2. Current value estimate and rent estimate, with their comparables\n3. Market statistics for the property's zip code\n4. Estimated gross rental yield and price to rent ratio\n\nProvide insights on whether this is a good investment opportunity."
     },
     {
-      "name": "market_overview", 
-      "description": "Get comprehensive market overview for an area",
-      "text": "Provide a comprehensive market overview for ZIP code {zip_code}. Include:\n1. Market statistics (avg/median prices, price per sq ft)\n2. Current active listings\n3. Recent sales data\n4. Market trends and insights"
+      "name": "market_overview",
+      "description": "Get a comprehensive market overview for a zip code",
+      "arguments": [
+        "zip_code"
+      ],
+      "text": "Provide a comprehensive market overview for zip code ${arguments.zip_code}. Include:\n1. Sale and rental market statistics (average and median price, rent, price per sq ft)\n2. Trends over the last 12 months\n3. A sample of current active sale and rental listings\n4. Key insights for buyers, renters, and investors"
     }
   ],
   "compatibility": {
-    "platforms": ["darwin", "linux", "win32"],
-    "python_versions": ["3.12", "3.13"]
-  },
-  "icon": "🏠"
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ],
+    "runtimes": {
+      "python": ">=3.12"
+    }
+  }
 }

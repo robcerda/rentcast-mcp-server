@@ -35,3 +35,7 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db 
+# Build output
+*.mcpb
+.ruff_cache/
+.pytest_cache/

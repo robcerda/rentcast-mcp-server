@@ -1,0 +1,13 @@
+# Known advisories against the locked dependency set, accepted for now.
+# The audit fails on any advisory NOT listed here, so a newly published
+# one is a red build while this standing backlog stays quiet.
+#
+# Every entry is a deliberate, dated acknowledgement. Remove entries as
+# dependencies are upgraded. Do not add one without saying why.
+#
+# Format: one advisory id per line, with the package and fix version in a
+# comment, e.g.
+#   PYSEC-2026-1234  # somepackage 1.0.0, fixed in 1.0.1
+#
+# Checked 2026-09-23 against OSV and the PyPI advisory database: no known
+# advisories in the locked set.
