@@ -1,6 +1,6 @@
 # RentCast MCP Server
 
-Model Context Protocol (MCP) server for connecting Claude with the RentCast API. It provides tools for accessing property data, valuations, and market statistics through the RentCast API.
+Model Context Protocol (MCP) server for connecting Claude with the RentCast API. It provides tools for every [RentCast API](https://developers.rentcast.io/reference) endpoint: property records, value and rent estimates with comparables, sale and rental listings, and market statistics.
 
 ## Requirements
 
@@ -20,7 +20,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ### 2. Clone this repository
 
 ```bash
-git clone https://github.com/yourusername/rentcast-mcp-server.git
+git clone https://github.com/robcerda/rentcast-mcp-server.git
 cd rentcast-mcp-server
 ```
 
@@ -58,6 +58,8 @@ Create a `.env` file in the project root with your RentCast API key:
 RENTCAST_API_KEY=your_api_key_here
 ```
 
+Optionally, set `RENTCAST_SUPPRESS_LOGGING=true` to ask RentCast not to log your queries.
+
 ## Usage
 
 ### 1. Configure Claude Desktop
@@ -89,25 +91,27 @@ Restart Claude Desktop after saving the configuration.
 
 Once configured, Claude Desktop will have access to these RentCast tools:
 
-* **`get_property_data`**: Get detailed property data for a specific property ID
-* **`get_property_valuation`**: Get property value estimates
-* **`get_rent_estimate`**: Get rent estimates for a property
-* **`get_market_statistics`**: Get market statistics for a ZIP code area
-* **`get_property_listings`**: Get active property listings in a ZIP code area
+* **`search_properties`**: Search property records (owner, tax assessments, sale history) by address, city, state, zip code, or radius
+* **`get_random_properties`**: Get a random sample of property records
+* **`get_property`**: Get a single property record by id
+* **`get_value_estimate`**: Get a property value estimate with comparable sales
+* **`get_rent_estimate`**: Get a long-term rent estimate with comparable rentals
+* **`search_sale_listings`**: Search for-sale listings
+* **`get_sale_listing`**: Get a single sale listing by id
+* **`search_rental_listings`**: Search long-term rental listings
+* **`get_rental_listing`**: Get a single rental listing by id
+* **`get_market_statistics`**: Get sale and rental market statistics and history for a zip code
+
+The search tools accept RentCast's [query syntax](https://developers.rentcast.io/reference/search-queries): multiple values with `|` (`Condo|Townhouse`) and ranges with `:` (`bedrooms=2:4`, `price=*:500000`). Results are paginated up to 500 at a time with `limit` and `offset`.
+
+It also provides two prompts, `property_analysis` and `market_overview`.
 
 **Example queries to try with Claude:**
-- "Get market statistics for ZIP code 90210"
-- "Show property listings in ZIP code 10001"
-- "What are the market trends in ZIP code 02101?"
+- "What is 5500 Grand Lake Dr, San Antonio, TX 78244 worth, and what would it rent for?"
+- "Find 3 bedroom houses for sale under $500k in 78704 listed in the last 30 days"
+- "Show rental market trends in ZIP code 90210 over the last year"
 
-## Development and testing
-
-Install development dependencies and run the test suite with:
-
-```bash
-uv sync --all-extras
-pytest -v tests
-```
+## Development
 
 ### Running the server locally
 

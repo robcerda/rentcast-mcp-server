@@ -1,6 +1,6 @@
 [project]
 name = "rentcast-mcp-server"
-version = "0.1.0"
+version = "0.3.0"
 description = "MCP server for RentCast API integration"
 license = {text = "MIT"}
 readme = "README.md"
@@ -9,7 +9,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "mcp[cli]>=1.3.0",
+    "mcp[cli]>=1.9,<2",
     "httpx>=0.24.0",
     "python-dotenv>=1.0.0",
 ]
@@ -48,6 +48,8 @@ only-packages = true
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "B", "W"]
 
 [tool.mypy]
