@@ -27,7 +27,27 @@ class RentCastError(Exception):
         self.status_code = status_code
 
 
+SURROGATE_PREFIX = "hsurr:"
+
+
 def api_key() -> Optional[str]:
+    """
+    The credential to send in the X-Api-Key header.
+
+    A surrogate credential (an "hsurr:..." stand-in for the real key) in
+    RENTCAST_SURROGATE_KEY is preferred. RENTCAST_API_KEY is the fallback.
+    Either value is sent exactly as configured.
+    """
+    surrogate = os.environ.get("RENTCAST_SURROGATE_KEY")
+    if surrogate:
+        if not surrogate.startswith(SURROGATE_PREFIX):
+            # Fail rather than fall back, so a misconfigured surrogate never
+            # silently sends the real key instead.
+            raise RentCastError(
+                f"RENTCAST_SURROGATE_KEY must start with '{SURROGATE_PREFIX}'. "
+                "Unset it to use RENTCAST_API_KEY instead."
+            )
+        return surrogate
     return os.environ.get("RENTCAST_API_KEY") or None
 
 
@@ -43,8 +63,8 @@ def get_http_client() -> httpx.AsyncClient:
     key = api_key()
     if not key:
         raise RentCastError(
-            "RENTCAST_API_KEY environment variable is not set. "
-            "Get a key at https://app.rentcast.io/app/api"
+            "No RentCast credential is set. Set RENTCAST_SURROGATE_KEY or "
+            "RENTCAST_API_KEY. Get a key at https://app.rentcast.io/app/api"
         )
     if _client is None:
         _client = httpx.AsyncClient(
@@ -63,7 +83,7 @@ def error_message(response: httpx.Response) -> str:
     except (ValueError, AttributeError):
         detail = response.text or response.reason_phrase
     hints = {
-        401: "Check that RENTCAST_API_KEY is valid.",
+        401: "Check that RENTCAST_SURROGATE_KEY or RENTCAST_API_KEY is valid.",
         403: "The API key is restricted, or the subscription or billing is inactive.",
         429: "Rate limit of 20 requests per second exceeded.",
     }

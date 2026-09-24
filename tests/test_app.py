@@ -13,8 +13,34 @@ from rentcast_mcp_server.app import mcp
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
+@pytest.fixture(autouse=True)
+def no_surrogate(monkeypatch):
+    monkeypatch.delenv("RENTCAST_SURROGATE_KEY", raising=False)
+
+
 def test_main_exits_without_api_key(monkeypatch):
     monkeypatch.delenv("RENTCAST_API_KEY", raising=False)
+    monkeypatch.setattr(app_module.mcp, "run", lambda *a, **k: pytest.fail("server started"))
+
+    with pytest.raises(SystemExit) as exc:
+        app_module.main([])
+    assert exc.value.code == 1
+
+
+def test_main_starts_with_only_a_surrogate(monkeypatch):
+    monkeypatch.delenv("RENTCAST_API_KEY", raising=False)
+    monkeypatch.setenv("RENTCAST_SURROGATE_KEY", "hsurr:abc")
+    calls = []
+    monkeypatch.setattr(app_module.mcp, "run", lambda *a, **k: calls.append(k))
+
+    app_module.main([])
+
+    assert calls == [{}]
+
+
+def test_main_exits_on_malformed_surrogate(monkeypatch):
+    monkeypatch.setenv("RENTCAST_API_KEY", "real-key")
+    monkeypatch.setenv("RENTCAST_SURROGATE_KEY", "not-a-surrogate")
     monkeypatch.setattr(app_module.mcp, "run", lambda *a, **k: pytest.fail("server started"))
 
     with pytest.raises(SystemExit) as exc:

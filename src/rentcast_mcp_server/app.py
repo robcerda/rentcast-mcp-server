@@ -23,7 +23,7 @@ mcp = FastMCP("rentcast-mcp")
 
 # Import tools package to trigger @mcp.tool() registration
 import rentcast_mcp_server.tools  # noqa: E402, F401
-from rentcast_mcp_server.client import api_key  # noqa: E402
+from rentcast_mcp_server.client import RentCastError, api_key  # noqa: E402
 
 # Export for `mcp run`
 app = mcp
@@ -84,8 +84,13 @@ def main(argv: list[str] | None = None) -> None:
     if not args.host.strip():
         parser.error("HTTP host must not be empty")
 
-    if not api_key():
-        logger.error("RENTCAST_API_KEY environment variable is not set")
+    try:
+        credential = api_key()
+    except RentCastError as e:
+        logger.error("%s", e)
+        sys.exit(1)
+    if not credential:
+        logger.error("No RentCast credential: set RENTCAST_SURROGATE_KEY or RENTCAST_API_KEY")
         sys.exit(1)
 
     if args.transport != "stdio":
