@@ -77,20 +77,76 @@ async def test_suppress_logging_off(rentcast, monkeypatch, value):
     assert "suppressLogging" not in rentcast.last_params
 
 
-async def test_missing_api_key_is_reported(monkeypatch):
-    monkeypatch.delenv("RENTCAST_API_KEY", raising=False)
+@pytest.fixture
+def fresh_client(monkeypatch):
+    """No cached client and no credentials in the environment."""
     monkeypatch.setattr(client_module, "_client", None)
+    monkeypatch.delenv("RENTCAST_API_KEY", raising=False)
+    monkeypatch.delenv("RENTCAST_SURROGATE_KEY", raising=False)
 
-    with pytest.raises(ToolError, match="RENTCAST_API_KEY environment variable is not set"):
+
+async def test_missing_credential_is_reported(fresh_client):
+    with pytest.raises(ToolError, match="Set RENTCAST_SURROGATE_KEY or RENTCAST_API_KEY"):
         await call_tool("get_market_statistics", {"zip_code": "78704"})
 
 
-def test_client_sends_api_key_header(monkeypatch):
+def test_client_sends_api_key_header(fresh_client, monkeypatch):
     monkeypatch.setenv("RENTCAST_API_KEY", "abc123")
-    monkeypatch.setattr(client_module, "_client", None)
 
     client = client_module.get_http_client()
 
     assert client.headers["X-Api-Key"] == "abc123"
     assert str(client.base_url) == "https://api.rentcast.io/v1/"
     assert client_module.get_http_client() is client
+
+
+def test_surrogate_is_preferred_over_api_key(fresh_client, monkeypatch):
+    monkeypatch.setenv("RENTCAST_SURROGATE_KEY", "hsurr:abc.123/XYZ=")
+    monkeypatch.setenv("RENTCAST_API_KEY", "real-key")
+
+    client = client_module.get_http_client()
+
+    assert client.headers["X-Api-Key"] == "hsurr:abc.123/XYZ="
+
+
+def test_surrogate_alone_is_enough(fresh_client, monkeypatch):
+    monkeypatch.setenv("RENTCAST_SURROGATE_KEY", "hsurr:abc")
+
+    assert client_module.get_http_client().headers["X-Api-Key"] == "hsurr:abc"
+
+
+def test_empty_surrogate_falls_back_to_api_key(fresh_client, monkeypatch):
+    # Claude Desktop passes an unset optional setting as an empty string.
+    monkeypatch.setenv("RENTCAST_SURROGATE_KEY", "")
+    monkeypatch.setenv("RENTCAST_API_KEY", "real-key")
+
+    assert client_module.get_http_client().headers["X-Api-Key"] == "real-key"
+
+
+@pytest.mark.parametrize("value", ["abc123", "HSURR:abc", " hsurr:abc", "surr:abc"])
+async def test_malformed_surrogate_does_not_fall_back(fresh_client, monkeypatch, value):
+    monkeypatch.setenv("RENTCAST_SURROGATE_KEY", value)
+    monkeypatch.setenv("RENTCAST_API_KEY", "real-key")
+
+    with pytest.raises(ToolError, match="must start with 'hsurr:'") as exc:
+        await call_tool("get_market_statistics", {"zip_code": "78704"})
+    assert value.strip() not in str(exc.value)
+    assert client_module._client is None
+
+
+async def test_surrogate_reaches_the_wire_unchanged(rentcast, monkeypatch):
+    """The surrogate is sent in X-Api-Key byte for byte, like the real key."""
+    surrogate = "hsurr:v1.Zm9vYmFy+/=="
+    real_client = httpx.AsyncClient
+    monkeypatch.setattr(
+        client_module.httpx,
+        "AsyncClient",
+        lambda **kwargs: real_client(transport=httpx.MockTransport(rentcast.handle), **kwargs),
+    )
+    monkeypatch.setattr(client_module, "_client", None)
+    monkeypatch.setenv("RENTCAST_SURROGATE_KEY", surrogate)
+    rentcast.json("/markets", {})
+
+    await call_tool("get_market_statistics", {"zip_code": "78704"})
+
+    assert rentcast.last.headers["X-Api-Key"] == surrogate

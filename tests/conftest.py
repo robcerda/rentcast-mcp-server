@@ -51,6 +51,7 @@ def rentcast(monkeypatch) -> FakeRentCast:
     """Route the shared HTTP client to a fake RentCast API."""
     fake = FakeRentCast()
     monkeypatch.setenv("RENTCAST_API_KEY", "test-key")
+    monkeypatch.delenv("RENTCAST_SURROGATE_KEY", raising=False)
     monkeypatch.delenv("RENTCAST_SUPPRESS_LOGGING", raising=False)
 
     async def no_sleep(_: float) -> None:

@@ -108,7 +108,8 @@ The extension uses the MCPB `uv` server type: Claude Desktop installs the pinned
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `RENTCAST_API_KEY` | Yes | Your RentCast API key |
+| `RENTCAST_SURROGATE_KEY` | No | A surrogate credential (`hsurr:...`) to send instead of the real key. Preferred over `RENTCAST_API_KEY` when set |
+| `RENTCAST_API_KEY` | Yes, unless a surrogate is set | Your RentCast API key |
 | `RENTCAST_SUPPRESS_LOGGING` | No | `true` asks RentCast not to log your queries and query parameters |
 | `RENTCAST_MCP_TRANSPORT` | No | `stdio` (default), `streamable-http`, or `http` |
 | `RENTCAST_MCP_HOST` | No | HTTP bind address (default `127.0.0.1`) |
@@ -117,6 +118,10 @@ The extension uses the MCPB `uv` server type: Claude Desktop installs the pinned
 | `RENTCAST_MCP_ALLOWED_ORIGINS` | No | Extra browser `Origin` values to accept over HTTP, comma-separated |
 
 Each HTTP setting also has a command line flag: `rentcast-mcp --help`.
+
+### Surrogate credentials
+
+If your environment issues a surrogate credential (a string starting with `hsurr:`) in place of the real API key, set it in `RENTCAST_SURROGATE_KEY`. The server sends it in the `X-Api-Key` header exactly as given, the same way it sends a real key, and uses `RENTCAST_API_KEY` only when no surrogate is set. A value in `RENTCAST_SURROGATE_KEY` that does not start with `hsurr:` stops the server with an error instead of falling back to the real key.
 
 ## Containerized Deployment
 
