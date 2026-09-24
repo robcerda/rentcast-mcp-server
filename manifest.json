@@ -1,8 +1,11 @@
 {
-  "dxt_version": "0.1",
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/mcpb/main/schemas/mcpb-manifest-v0.4.schema.json",
+  "manifest_version": "0.4",
   "name": "rentcast-mcp",
+  "display_name": "RentCast",
   "version": "0.3.0",
   "description": "RentCast API integration for property data, valuations, and market analytics",
+  "long_description": "Search property records, get value and rent estimates with comparables, browse sale and rental listings, and pull market statistics for any US zip code through the RentCast API. Requires a RentCast API key from app.rentcast.io.",
   "author": {
     "name": "Rob Cerda",
     "email": "me@robcerda.com",
@@ -14,32 +17,41 @@
     "type": "git",
     "url": "https://github.com/robcerda/rentcast-mcp-server.git"
   },
-  "keywords": ["real-estate", "property", "valuation", "rentcast", "mcp"],
+  "documentation": "https://github.com/robcerda/rentcast-mcp-server#readme",
+  "support": "https://github.com/robcerda/rentcast-mcp-server/issues",
+  "keywords": [
+    "real-estate",
+    "property",
+    "valuation",
+    "rentcast",
+    "mcp"
+  ],
   "server": {
-    "type": "python",
+    "type": "uv",
     "entry_point": "src/rentcast_mcp_server/server.py",
     "mcp_config": {
-      "command": "python",
-      "args": ["${__dirname}/src/rentcast_mcp_server/server.py"],
+      "command": "uv",
+      "args": [
+        "run",
+        "--frozen",
+        "--no-dev",
+        "--directory",
+        "${__dirname}",
+        "rentcast-mcp"
+      ],
       "env": {
         "RENTCAST_API_KEY": "${user_config.api_key}",
         "RENTCAST_SUPPRESS_LOGGING": "${user_config.suppress_logging}"
       }
-    },
-    "requirements": {
-      "python": ">=3.12"
     }
   },
   "user_config": {
     "api_key": {
-      "title": "RentCast API Key",
-      "description": "Your RentCast API key from app.rentcast.io",
       "type": "string",
+      "title": "RentCast API Key",
+      "description": "Your RentCast API key from app.rentcast.io/app/api",
       "required": true,
-      "validation": {
-        "pattern": "^[a-f0-9]{32}$",
-        "message": "API key should be a 32-character hexadecimal string"
-      }
+      "sensitive": true
     },
     "suppress_logging": {
       "title": "Suppress RentCast request logging",
@@ -95,19 +107,28 @@
     {
       "name": "property_analysis",
       "description": "Analyze a property's value, rent, comparables, and local market",
-      "arguments": ["address"],
+      "arguments": [
+        "address"
+      ],
       "text": "Please analyze the property at ${arguments.address}. Include:\n1. The property record (attributes, last sale, tax assessment)\n2. Current value estimate and rent estimate, with their comparables\n3. Market statistics for the property's zip code\n4. Estimated gross rental yield and price to rent ratio\n\nProvide insights on whether this is a good investment opportunity."
     },
     {
       "name": "market_overview",
       "description": "Get a comprehensive market overview for a zip code",
-      "arguments": ["zip_code"],
+      "arguments": [
+        "zip_code"
+      ],
       "text": "Provide a comprehensive market overview for zip code ${arguments.zip_code}. Include:\n1. Sale and rental market statistics (average and median price, rent, price per sq ft)\n2. Trends over the last 12 months\n3. A sample of current active sale and rental listings\n4. Key insights for buyers, renters, and investors"
     }
   ],
   "compatibility": {
-    "platforms": ["darwin", "linux", "win32"],
-    "python_versions": ["3.12", "3.13", "3.14"]
-  },
-  "icon": "🏠"
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ],
+    "runtimes": {
+      "python": ">=3.12"
+    }
+  }
 }

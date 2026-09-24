@@ -1,3 +1,13 @@
-mcp[cli]>=1.9,<2
-httpx>=0.24.0
-python-dotenv>=1.0.0
+# Compatibility shim. The real pinned set lives in requirements-lock.txt.
+#
+# This file exists so the documented command still works:
+#   pip install -r requirements.txt
+#
+# It deliberately holds no version specifiers of its own. A root
+# requirements.txt gets resolved by tools like Dependabot as an independent
+# manifest, separately from uv.lock, which lets the two disagree. With nothing
+# to resolve, there is nothing to get wrong, and CI fails if any specifier
+# appears below.
+#
+# Add or change dependencies in pyproject.toml, then regenerate the lock file.
+-r requirements-lock.txt

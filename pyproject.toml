@@ -24,8 +24,9 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
     "ruff>=0.1.0",
-    "mypy>=1.0.0",
 ]
 
 [project.urls]
@@ -52,9 +53,7 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "W"]
 
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
